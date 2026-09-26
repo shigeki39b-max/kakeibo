@@ -1,0 +1,916 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>iカレンダー</title>
+<style>
+html,body{min-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}body{margin:0;background:#f4f5f7;font-family:Arial,"Noto Sans JP",sans-serif;color:#222}
+header{background:#fff;padding:16px 24px;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center}
+.wrap{max-width:1100px;margin:auto;padding:20px}.card{background:#fff;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px #0001}
+h1{margin:0;font-size:24px}h2{margin-top:0}
+button{border:0;border-radius:9px;padding:10px 15px;cursor:pointer}.primary{background:#222;color:#fff}.secondary{background:#e9eaed}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.week{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.week div{text-align:center;color:#777;padding:7px}
+.day{min-height:85px;text-align:left;background:#fafafa;border:1px solid #ddd}.day.has{background:#eaf4ff}.day.today{outline:2px solid #222}
+.nav{display:flex;justify-content:space-between;align-items:center}.month{font-size:22px;font-weight:bold}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}label{display:block;font-weight:bold;font-size:17px;margin:10px 0 5px}
+input,select,textarea{width:100%;padding:10px;border:1px solid #ccc;border-radius:8px;font-size:15px}textarea{min-height:100px}
+.hidden{display:none}.actions{display:flex;gap:10px;margin-top:16px}.actions>*{flex:1}
+.notice{background:#fff8dc;padding:12px;border:1px solid #e7d48a;border-radius:9px}
+.price{font-size:21px;font-weight:bold;background:#f5f7fa;padding:12px;border-radius:9px;margin-top:10px}
+.stars{font-size:30px}.star{font-size:30px;background:none;padding:0;color:#bbb}.star.on{color:#e0a000}.room-stars{display:flex;gap:4px;margin-top:6px}.room-stars button{background:none;border:0;padding:0 4px;font-size:30px;color:#bbb}.room-stars button.on{color:#e0a000}
+.record{border:1px solid #eee;border-radius:9px;padding:12px;margin-top:10px}.deleteBtn{background:#fff0f0;color:#b00020;border:1px solid #f0b8b8;padding:7px 12px;border-radius:8px;margin-top:10px}.muted{color:#777;font-size:13px}.photo{max-width:100%;max-height:420px;object-fit:contain;border-radius:10px;margin-top:8px}
+.photoActions{display:flex;gap:8px;margin:8px 0}
+.photoActions>*{flex:1}
+.cameraBtn{background:#222;color:#fff;font-weight:bold}
+.photoPreview{position:relative;margin-top:8px}
+.scrollBtns{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{border-bottom:1px solid #ddd;padding:8px;text-align:left}th{background:#f5f5f5}
+@media(max-width:700px){.row{grid-template-columns:1fr}.wrap{padding:10px}}
+
+/* ===== スマホ版 強化CSS ===== */
+html{font-size:17px}
+body{
+  margin:0;
+  background:#f4f5f7;
+  -webkit-text-size-adjust:100%;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  padding:10px 12px;
+  gap:8px;
+  min-height:52px;
+}
+header h1{font-size:20px;white-space:nowrap}
+header>div{gap:5px!important}
+header button{padding:11px 10px;font-size:14px;min-height:44px}
+.wrap{width:auto;max-width:none;margin:0;padding:8px}
+.card{border-radius:12px;padding:12px;margin-bottom:10px;box-shadow:0 1px 5px #0001}
+h2{font-size:19px}
+h3{font-size:17px}
+button{
+  min-height:44px;
+  padding:10px 12px;
+  font-size:17px;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+input,select,textarea{
+  box-sizing:border-box;
+  min-height:46px;
+  padding:11px 12px;
+  font-size:18px;
+  border-radius:9px;
+}
+textarea{min-height:120px}
+.row{grid-template-columns:1fr}
+.actions{gap:8px}
+.actions button{min-height:48px}
+.grid,.week{gap:3px}
+.week div{padding:6px 1px;font-size:12px}
+.day{
+  min-height:62px;
+  padding:7px 4px;
+  font-size:14px;
+  border-radius:7px;
+}
+.day .muted{font-size:10px;line-height:1.2}
+.nav{gap:6px}
+.nav button{min-width:72px}
+.month{font-size:19px;white-space:nowrap}
+.scrollBtns{gap:6px}
+.scrollBtns button{flex:1}
+table{font-size:12px;min-width:700px}
+th,td{padding:7px 6px}
+.record{padding:10px}
+.price{font-size:18px;padding:10px}
+.notice{font-size:13px;padding:10px}
+.photo{max-width:100%;height:auto}
+.stars,.star{font-size:28px}
+.room-stars button{font-size:28px}
+#editPanel{border-width:2px!important}
+#calendarPage>.card:first-child{padding:8px}
+#summaryCard,#editPanel{overflow:hidden}
+@media(max-width:430px){
+  .photoActions button{min-height:50px;font-size:15px}
+
+  header h1{font-size:18px}
+  header button{font-size:13px;padding:9px 7px}
+  .day{min-height:58px;font-size:13px}
+  .month{font-size:18px}
+}
+
+</style>
+
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="iカレンダー">
+
+</head>
+<body>
+<header><h1 id="homeLogo" style="cursor:pointer" title="ホームへ戻る">iカレンダー</h1><div style="display:flex;gap:8px"><button class="secondary" id="topExec">＋ 実行を登録</button><button class="primary" id="topAdd">＋ 予定を登録</button></div></header>
+<div class="wrap">
+
+<section id="calendarPage">
+<div class="card">
+<div class="nav"><button class="secondary" id="prev">‹ 前月</button><div id="month" class="month"></div><button class="secondary" id="next">次月 ›</button></div>
+<div class="week"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
+<div id="cal" class="grid"></div>
+<div class="card" id="editPanel" style="margin-top:16px;border:3px solid #222">
+  <h2>✏️ 登録を編集・削除</h2>
+  <p class="muted">登録したデータは、ここから全部編集・削除できます。</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+    <button class="primary" id="editAllBtn">✏️ 全登録を編集</button>
+    <button class="secondary" id="editMonthAllBtn">✏️ 月別記録を編集</button>
+  </div>
+  <div id="editRecordList"></div>
+</div>
+
+</div>
+<div class="card"><div class="actions"><button class="secondary" id="add2">＋ 予定を登録</button><button class="primary" id="exec2">＋ 実行を登録</button></div></div>
+<div class="card"><button class="secondary" id="hotelBtn">ホテル・料金・星の登録</button></div>
+<div class="card" id="summaryCard">
+<h2>今までのまとめ</h2>
+<div class="row" id="summaryStats"></div>
+<h3>月別料金表</h3>
+<div style="overflow:auto"><table><thead><tr><th>月</th><th>利用件数</th><th>料金合計</th><th>平均料金</th></tr></thead><tbody id="monthlySummary"></tbody></table></div>
+<h3>月別料金グラフ</h3>
+<div id="monthlyChart" style="display:flex;align-items:flex-end;gap:8px;height:220px;padding:10px 4px;border-bottom:1px solid #ddd;overflow-x:auto"></div>
+</div>
+<div class="card"><h2>月別利用記録</h2><div class="muted">表から登録した月別の利用記録です。日付が不明なものは月単位で保存しています。</div><div style="overflow:auto"><table><thead><tr><th>月</th><th>利用日</th><th>ホテル</th><th>ランク</th><th>部屋</th><th>区分</th><th>利用</th><th>料金</th><th>操作</th></tr></thead><tbody id="monthRecords"></tbody></table></div></div>
+</section>
+
+<section id="formPage" class="hidden">
+<div class="card">
+<h2 id="formTitle">予定を登録</h2>
+<div class="notice" id="formNotice">予定日を登録します。実行日は後から別に登録できます。</div>
+<div class="row"><div id="plannedWrap"><label>予定日</label><input id="planned" type="date"></div><div id="executedWrap" class="hidden"><label>実行日</label><input id="executed" type="date"></div></div>
+<div class="row"><div><label>ホテル</label><select id="hotel"></select></div><div><label>ランク</label><select id="rank"></select></div></div>
+<div class="row"><div><label>部屋番号</label><select id="room"></select></div><div><label>利用区分</label><select id="member"><option value="member">メンバー</option><option value="visitor">ビジター</option></select></div></div>
+<div><label>区分</label><select id="dayType"><option value="平日">平日</option><option value="土日祝日">土日祝日</option></select></div>
+<div><label>プラン</label><select id="plan"></select></div>
+<div class="price">基本料金：<span id="price">—</span></div><div class="row"><div><label>延長・追加料金</label><input id="extraFee" type="number" min="0" step="100" value="0" inputmode="numeric"></div><div class="price">料金合計：<span id="totalPrice">—</span></div></div><div id="roomRatingWrap" class="hidden"><label>部屋評価（実行登録のときだけ）</label><div id="roomStars" class="room-stars"></div><div id="roomRatingText" class="muted">未評価</div></div>
+<label>日記・メモ</label><textarea id="memo" placeholder="その日のことを自由に記録できます"></textarea>
+<label>写真</label>
+<div class="photoActions">
+  <button type="button" class="cameraBtn" id="cameraBtn">📷 カメラで撮影</button>
+  <button type="button" class="secondary" id="photoSelectBtn">🖼️ 写真を選ぶ</button>
+</div>
+<input id="photo" type="file" accept="image/*" capture="environment" class="hidden">
+<div class="muted" id="photoHelp">スマホでは「カメラで撮影」で背面カメラが起動します。</div>
+<div id="preview"></div>
+<div class="actions"><button class="secondary" id="back1">戻る</button><button class="primary" id="save">保存</button></div>
+</div>
+</section>
+
+<section id="dayPage" class="hidden"><div class="card"><button class="secondary" id="back2">← カレンダー</button><h2 id="dayTitle"></h2><div id="dayRecords"></div></div></section>
+
+<section id="hotelPage" class="hidden">
+<div class="card">
+<button class="secondary" id="back3">← カレンダー</button>
+<div class="scrollBtns"><button class="secondary" id="hotelDown">⬇️ 下へ（料金表）</button><button class="secondary" id="hotelTop">⬆️ 上へ</button></div>
+<h2>ホテル・料金・星の登録</h2>
+<div class="notice">料金表を登録済みです。ホテル名、星、ランク、部屋番号をここで変更・追加できます。グリオンは税込の料金帯を登録しています（メンバー特典なし）。</div>
+<div class="row"><div><label>ホテル名（プルダウン）</label><select id="hhotelSelect"></select></div><div><label>星</label><input id="hstars" type="number" min="0" max="5"></div></div>
+<div id="newHotelNameWrap" class="hidden"><label>新しいホテル名</label><input id="hname" placeholder="ホテル名を入力"></div>
+<div class="row"><div style="width:100%"><label>ランク</label><input id="hranks" placeholder="A, B, C, S, SS"></div></div><div id="rankRoomInputs"></div>
+<div id="selectedHotelRates" class="card" style="margin-top:12px"></div>
+<button class="primary" id="hotelSave">ホテル情報を保存</button>
+<div class="notice">「ホテル ファイン琵琶湖2」は、料金・ランク・部屋番号を登録済みです。既存の利用記録は変更しません。</div>
+<h3>登録済みホテル</h3><div id="hotelList"></div>
+<h3 id="rateTableTop">登録済み料金表</h3><div style="overflow:auto"><table><thead><tr><th>ホテル</th><th>プラン</th><th>区分</th><th>A</th><th>B</th><th>C</th><th>S</th><th>SS</th></tr></thead><tbody id="rates"></tbody></table></div>
+</div>
+</section>
+</div>
+
+<script>
+var STORAGE_RECORDS="ical_records_v6";
+var OLD_STORAGE_RECORDS="ical_records_v5";
+var STORAGE_HOTELS="ical_hotels_v5";
+var records=JSON.parse(localStorage.getItem(STORAGE_RECORDS)||localStorage.getItem(OLD_STORAGE_RECORDS)||"[]");records.forEach(function(r){if(r.roomRating==null)r.roomRating=0;});
+var hotels=JSON.parse(localStorage.getItem(STORAGE_HOTELS)||"[]");
+var MONTH_RECORDS_KEY="ical_month_records_v2";
+var monthRecords=JSON.parse(localStorage.getItem(MONTH_RECORDS_KEY)||"null")||[
+ {month:"5月",hotel:"ホテルメイフェア",rank:"C",room:"210",dayType:"平日",plan:"2時間",price:"6,380円"},
+ {month:"6月",hotel:"ホテル ザ レオン守山店",rank:"C",room:"305",dayType:"平日",plan:"3時間10分",price:"5,300円"},
+ {month:"7月",hotel:"ホテル ファイン琵琶湖2",rank:"SS",room:"303",dayType:"平日",plan:"4時間",price:"6,940円"},
+ {month:"7月",hotel:"ホテル ファイン琵琶湖2",rank:"A",room:"202",dayType:"休日",plan:"1時間",price:"4,000円"},
+ {month:"8月",hotel:"ホテル ザ レオン守山店",rank:"B",room:"308",dayType:"平日",plan:"1時間30分",price:"3,080円"},
+ {month:"9月",hotel:"ホテル ザ レオン守山店",rank:"B",room:"203",dayType:"平日",plan:"3時間",price:"4,070円"},
+ {month:"10月",hotel:"ホテル ザ レオン守山店",rank:"B",room:"308",dayType:"休日",plan:"1時間30分",price:"3,080円"}
+];
+// 利用日を復元（以前表示していた日付）
+var restoreDates=["2026-05-01","2026-06-12","2026-07-02","2026-07-26","2026-08-10","2026-09-02",""];
+monthRecords.forEach(function(r,i){ if(!r.date) r.date=restoreDates[i]||""; });
+localStorage.setItem(MONTH_RECORDS_KEY,JSON.stringify(monthRecords));
+var view=new Date(); view.setDate(1); var photo="";
+
+var RATE={
+"GRAND LEON":{
+"A":{},"B":{},"C":{},"S":{},"SS":{}
+},
+"HOTEL THE LEON":{"A":{},"B":{},"S":{}},
+"グリオン":{"共通":{}}
+};
+
+function setRate(h,p,day,rank,member,visitor){
+ if(!RATE[h][rank])RATE[h][rank]={};
+ if(!RATE[h][rank][p])RATE[h][rank][p]={};
+ RATE[h][rank][p][day]={member:member,visitor:visitor};
+}
+
+/* ホテル ファイン琵琶湖II — 公式料金（2026年9月22日確認） */
+var FINE_BIWAKO2="ホテル ファイン琵琶湖2";
+RATE[FINE_BIWAKO2]={"S":{},"A":{},"B":{},"C":{},"D":{},"E":{},"F":{}};
+function fineRate(plan,day,rank,price){ setRate(FINE_BIWAKO2,plan,day,rank,price,price); }
+var fineRanks=["S","A","B","C","D","E","F"];
+var fineRestWeek=[5800,5600,5400,5200,5000,4800,4200];
+var fineRestWeekend=[6500,6300,6100,5900,5700,5500,4900];
+var fineServiceWeek=[6600,6400,6200,6000,5800,5600,5000];
+var fineServiceSat=[7300,7100,6900,6700,6500,6300,5700];
+var fineStayWeek=[9500,9300,9100,8900,8700,8500,7900];
+var fineStaySat=[11700,11500,11300,11100,10900,10700,10100];
+fineRanks.forEach(function(r,i){
+  fineRate("休憩3時間","平日",r,fineRestWeek[i]);
+  fineRate("休憩3時間","土日祝",r,fineRestWeekend[i]);
+  fineRate("サービスタイム","月〜金",r,fineServiceWeek[i]);
+  fineRate("サービスタイム","土・祝前",r,fineServiceSat[i]);
+  fineRate("サービスタイム","日・祝日",r,fineServiceSat[i]);
+  fineRate("宿泊","日〜木・祝日",r,fineStayWeek[i]);
+  fineRate("宿泊","金曜日",r,fineStayWeek[i]);
+  fineRate("宿泊","土・祝前日",r,fineStaySat[i]);
+});
+var fineRooms={
+  S:["202","204","205","302","304"],
+  A:["201","203","207","303"],
+  B:["301","308","401"],
+  C:["206","306","307"],
+  D:["305","405","407"],
+  E:["402","403","406"],
+  F:["404"]
+};
+var fineHotel={name:FINE_BIWAKO2,stars:0,ranks:fineRanks.slice(),rankRooms:fineRooms};
+var fineIdx=hotels.findIndex(function(h){return h.name===FINE_BIWAKO2;});
+if(fineIdx>=0) hotels[fineIdx]=fineHotel; else hotels.push(fineHotel);
+localStorage.setItem(STORAGE_HOTELS,JSON.stringify(hotels));
+
+/* HOTEL THE LEON */
+setRate("HOTEL THE LEON","ショート90分","平日","A",1980,2530);setRate("HOTEL THE LEON","ショート90分","平日","B",1980,2530);
+setRate("HOTEL THE LEON","ショート90分","土日祝","A",2530,3080);setRate("HOTEL THE LEON","ショート90分","土日祝","B",2530,3080);
+setRate("HOTEL THE LEON","休憩3時間","平日","A",3080,3630);setRate("HOTEL THE LEON","休憩3時間","平日","B",3630,4180);setRate("HOTEL THE LEON","休憩3時間","平日","S",6600,7150);
+setRate("HOTEL THE LEON","休憩3時間","土日祝","A",4180,4730);setRate("HOTEL THE LEON","休憩3時間","土日祝","B",4730,5280);setRate("HOTEL THE LEON","休憩3時間","土日祝","S",7700,8250);
+setRate("HOTEL THE LEON","デイユース","平日","A",3630,4180);setRate("HOTEL THE LEON","デイユース","平日","B",4180,4730);setRate("HOTEL THE LEON","デイユース","平日","S",7150,7700);
+setRate("HOTEL THE LEON","デイユース","土日祝","A",4730,5280);setRate("HOTEL THE LEON","デイユース","土日祝","B",5280,5830);setRate("HOTEL THE LEON","デイユース","土日祝","S",8250,8800);
+setRate("HOTEL THE LEON","宿泊","平日","A",5280,5830);setRate("HOTEL THE LEON","宿泊","平日","B",5830,6380);setRate("HOTEL THE LEON","宿泊","平日","S",9350,9900);
+setRate("HOTEL THE LEON","宿泊","土日祝","A",7480,8030);setRate("HOTEL THE LEON","宿泊","土日祝","B",8030,8580);setRate("HOTEL THE LEON","宿泊","土日祝","S",12100,12650);
+setRate("HOTEL THE LEON","延長30分","平日","A",990,1320);setRate("HOTEL THE LEON","延長30分","平日","B",990,1320);setRate("HOTEL THE LEON","延長30分","平日","S",990,1320);
+setRate("HOTEL THE LEON","延長30分","土日祝","A",1320,1650);setRate("HOTEL THE LEON","延長30分","土日祝","B",1320,1650);setRate("HOTEL THE LEON","延長30分","土日祝","S",1320,1650);
+
+/* GRAND LEON */
+var G="GRAND LEON";
+var plansG=[
+["休憩2時間10分",[[2530,3080],[3080,3630],[3630,4180],[4180,4730],[5830,6380]],[[3630,4180],[4180,4730],[4510,5060],[4730,5280],[6380,6930]]],
+["休憩3時間10分",[[3630,4180],[4180,4730],[4730,5280],[5280,5830],[6930,7480]],[[4730,5280],[5280,5830],[5610,6160],[5830,6380],[7480,8030]]],
+["デイユース",[[4180,4730],[4730,5280],[5280,5830],[5830,6380],[7480,8030]],[[5280,5830],[5830,6380],[6380,6930],[6930,7480],[8580,9130]]],
+["宿泊",[[5830,6380],[6380,6930],[6930,7480],[7480,8030],[10450,11000]],[[8030,8580],[8580,9130],[9680,10230],[10230,10780],[13200,13750]]],
+["延長30分",[[550,880],[550,880],[550,880],[550,880],[550,880]],[[880,990],[990,1100],[1100,1210],[1210,1320],[1320,1430]]]
+];
+var ranksG=["A","B","C","S","SS"];
+plansG.forEach(function(x){
+ ["平日","土日祝"].forEach(function(day,di){
+  x[1+di].forEach(function(v,i){setRate(G,x[0],day,ranksG[i],v[0],v[1]);});
+ });
+});
+
+
+/* ホテル アクアキッス 守山（公式料金ページから登録） */
+var AQ="ホテル アクアキッス 守山";
+RATE[AQ]={"A":{},"B":{},"C":{},"D":{},"E":{}};
+function aq(p,day,rank,mem,vis){setRate(AQ,p,day,rank,mem,vis)}
+var aqRanks=["A","B","C","D","E"];
+var aqWeek=[3490,4990,5440,5900,7710];
+var aqWeekTax=[3840,5490,5990,6490,8490];
+var aqSat=[6350,7710,8170,8620,9530];
+var aqSatTax=[6990,8490,8990,9490,10490];
+var aqRestSat=[4530,5440,5900,6350,9530];
+var aqRestSatTax=[4990,5990,6490,6990,10490];
+var aqStayWeek=[4990,6350,6809,7710,9080];
+var aqStayFri=[6350,6809,7710,8170,10440];
+var aqStaySat=[10900,11809,12260,12710,14530];
+var aqStayWeekTax=[5490,6990,7490,8490,9990];
+var aqStayFriTax=[6990,7490,8490,8990,11490];
+var aqStaySatTax=[11990,12990,13490,13990,15990];
+var aqExtWeek=[1080,1080,1170,1170,1260];
+var aqExtSat=[1080,1080,1170,1170,1260];
+var aqExtWeekTax=[1190,1190,1290,1290,1390];
+var aqExtSatTax=[1190,1190,1290,1290,1390];
+function aqSetArray(p,day,arr){arr.forEach(function(v,i){aq(p,day,aqRanks[i],v,v)})}
+aqSetArray("サービスタイム1部","平日",aqWeek);aqSetArray("サービスタイム2部","平日",aqWeek);aqSetArray("休憩3時間","平日",aqWeek);
+aqSetArray("サービスタイム1部","金曜",aqWeek);aqSetArray("サービスタイム2部","金曜",aqWeek);aqSetArray("休憩3時間","金曜",aqWeek);
+aqSetArray("サービスタイム1部","土日祝",aqSat);aqSetArray("サービスタイム2部","土日祝",aqSat);aqSetArray("休憩3時間","土日祝",aqRestSat);
+aqSetArray("サービスタイム1部","祝前日",aqWeek);aqSetArray("サービスタイム2部","祝前日",aqWeek);aqSetArray("休憩3時間","祝前日",aqWeek);
+aqSetArray("ご宿泊1","平日",aqStayWeek);aqSetArray("ご宿泊2","平日",aqStayWeek);
+aqSetArray("ご宿泊","金曜",aqStayFri);aqSetArray("ご宿泊","土日祝",aqStaySat);aqSetArray("ご宿泊","祝前日",aqStaySat);
+aqSetArray("延長30分","平日",aqExtWeek);aqSetArray("延長30分","金曜",aqExtWeek);aqSetArray("延長30分","土日祝",aqExtSat);aqSetArray("延長30分","祝前日",aqExtSat);
+/* グリオン（2026年9月確認。税込。メンバー特典なし） */
+var GL="グリオン";
+function glionRate(plan,day,member,visitor){setRate(GL,plan,day,"共通",member,visitor)}
+[
+ ["休憩1時間（ラッキールーム）","平日","1,080円"],["休憩1時間（ラッキールーム）","土日祝","2,180円"],
+ ["休憩1時間30分","平日","1,960〜3,280円"],["休憩1時間30分","土日祝","3,060〜4,380円"],
+ ["休憩3時間","平日","3,280〜4,930円"],["休憩3時間","土日祝","4,380〜6,030円"],
+ ["休憩5時間","平日","4,380〜6,580円"],
+ ["サービスタイム（4:00〜22:00・最大18時間）","平日","5,480〜7,680円"],
+ ["宿泊（日〜木・最大22時間）","日〜木","4,380〜7,680円"],
+ ["宿泊（金・最大19時間）","金曜","5,480〜8,780円"],
+ ["宿泊（土・祝前・最大15時間）","土日祝","9,330〜12,630円"]
+].forEach(function(x){glionRate(x[0],x[1],x[2],x[2]);});
+
+var HOTEL_DEFAULT=[
+{name:"HOTEL THE LEON",stars:5,ranks:["A","B","S"],rankRooms:{A:["207","307"],B:["201","202","203","205","206","208","301","302","303","305","306","308"],S:["310","401","403"]}},
+{name:"GRAND LEON",stars:5,ranks:["A","B","C","S","SS"],rankRooms:{A:["2206"],B:["2201","2204","2211","2212","2213","2218","2220","2223"],C:["2202","2207","2209","2210","2214","2215","2216","2217","2219","2221","2222","2225"],S:["2205","2208","2219","2224"],SS:["2203"]}},
+{name:"ホテル アクアキッス 守山",stars:0,ranks:["A","B","C","D","E"],rankRooms:{A:["202"],B:["201","502","602","603"],C:["301","501","504"],D:["303","401","402","701","703"],E:["801","802"]}},
+{name:"グリオン",stars:0,ranks:["共通"],rankRooms:{共通:["301","303","407"]}},
+{name:"LAGNA",stars:0,ranks:["A","B","C"],rankRooms:{A:["201","202","203","205"],B:["206","301","302","303","305","306","307"],C:["401","402","403","405","406","407"]}},
+{name:"FEEL LAKE VIEW",stars:0,ranks:["S","N"],rankRooms:{S:["011","012","013","111","112","113","114","211","212","213","214","215","311","312","313","314"],N:["101","102","103","104","105","201","202","203","204","205","206","207","301","302","303","315"]}},
+{name:"HOTEL LOTUS 大津店",stars:0,ranks:["A","B","C","D","E","F","G","H","I"],rankRooms:{A:["405","406","504","505"],B:["203","301","407"],C:["205","304","401","404","501"],D:["201","204","303","403"],E:["206","305","306","502","506"],F:["202","302","402"],G:["208","309","409","411","503"],H:["209","308","408","410"],I:["207","307"]}},
+{name:"HOTEL LUNA 大津店",stars:0,ranks:["A","B","C","D","E","F","G"],rankRooms:{A:["501","502"],B:["302","306","308","310","406","408"],C:["203","301","401","403","407"],D:["201","202","303","305","402","405","410"],E:["205","206"],F:["207","208","307","309","409"],G:["503","505"]}},
+{name:"HOTEL LaViel",stars:0,ranks:["A","B","C","D","E","F"],rankRooms:{A:["201","206"],B:["202","203","204","205"],C:["301","302","401"],D:["402","403"],E:["303","304","404","502"],F:["501","503","504"]}},
+{name:"HOTEL OWL",stars:0,ranks:["共通"],rankRooms:{共通:[]}},
+{name:"ホテル コート・ダ・ジュール",stars:0,ranks:["Standard","Superior","Sweet"],rankRooms:{Standard:["207","209","210","307","308","309","407","408","409","410"],Superior:["202","203","205","206","302","303","305","306","402","403","405","406"],Sweet:["201","301","401"]}},
+{name:"ヴィラ・コスタ",stars:0,ranks:["共通"],rankRooms:{共通:[]}},
+{name:"ホテルメイフェア",stars:0,ranks:["A","B","C","D","E"],rankRooms:{A:["202","208"],B:["203","207","212"],C:["210","211","213"],D:["201","205","206","217"],E:["215","216"]}},
+{name:"プラザ太陽",stars:0,ranks:["A","B"],rankRooms:{A:["703","705"],B:["702"]}},
+{name:"どんぐりころころ 守山店",stars:0,ranks:["共通"],rankRooms:{共通:[]}},
+{name:"ラフェスタ",stars:0,ranks:["共通"],rankRooms:{共通:[]}},
+{name:"HOTEL リーベンデール",stars:0,ranks:["共通"],rankRooms:{共通:["208","211","212"]}}
+];
+
+/* ===== 滋賀県ラブホテル追加分（2026年9月確認） ===== */
+function addRangeRate(h,plan,day,lo,hi,memberDiscount){
+  if(!RATE[h]) RATE[h]={"共通":{}};
+  var mem=(lo===hi?String(lo):String(lo)+"〜"+String(hi))+"円";
+  var vis=mem;
+  if(memberDiscount){
+    mem=(lo-memberDiscount===hi-memberDiscount?String(lo-memberDiscount):String(lo-memberDiscount)+"〜"+String(hi-memberDiscount))+"円";
+  }
+  setRate(h,plan,day,"共通",mem,vis);
+}
+function addSimpleHotel(name,stars){
+  if(!HOTEL_DEFAULT.some(function(x){return x.name===name;})) HOTEL_DEFAULT.push({name:name,stars:stars||0,ranks:["共通"],rankRooms:{共通:[]}});
+}
+
+/* 1 LAGNA - 公式料金ページ */
+addSimpleHotel("LAGNA",0);
+[
+ ["休憩90分","平日",2190,4390],["休憩3時間","平日",3290,4390],["休憩8時間","平日",4390,5490],
+ ["休憩90分","土日祝",3290,4390],["休憩3時間","土日祝",4390,5490],["休憩8時間","土日祝",5490,6690],
+ ["宿泊","日〜木",5490,8790],["宿泊","金曜",6590,9890],["宿泊","土日祝",7690,10990]
+].forEach(function(x){addRangeRate("LAGNA",x[0],x[1],x[2],x[3]);});
+
+/* 2 FEEL LAKE VIEW */
+addSimpleHotel("FEEL LAKE VIEW",0);
+[
+ ["休憩1時間10分","平日",3600,6100],["休憩2時間","平日",4100,6600],["休憩3時間","平日",4600,7100],["休憩5時間","平日",5100,7600],["休憩8時間","平日",5600,8100],["休憩12時間","平日",6200,8700],
+ ["休憩1時間10分","土日祝",4200,6700],["休憩2時間","土日祝",4900,7400],["休憩3時間","土日祝",5200,7700],["休憩5時間","土日祝",5800,8300],["休憩8時間","土日祝",6400,8900],
+ ["宿泊","日〜金",6800,8800],["宿泊","土日祝",7900,9900]
+].forEach(function(x){addRangeRate("FEEL LAKE VIEW",x[0],x[1],x[2],x[3]);});
+addRangeRate("FEEL LAKE VIEW","宿泊","金曜",6800,8800);
+
+/* 3 HOTEL LOTUS 大津店 - 公式サイト */
+addSimpleHotel("HOTEL LOTUS 大津店",0);
+[
+ ["休憩2時間","平日",3490,9900],["休憩5時間","平日",4490,10900],["休憩8時間","平日",5490,11900],["休憩10時間","平日",6490,12900],
+ ["休憩2時間","土日祝",4490,10900],["休憩5時間","土日祝",5490,11900],["休憩8時間","土日祝",6490,12900],["休憩10時間","土日祝",7490,13900],
+ ["宿泊","日〜木",6900,19900],["宿泊","金曜",7900,20900],["宿泊","土日祝",8900,21900]
+].forEach(function(x){addRangeRate("HOTEL LOTUS 大津店",x[0],x[1],x[2],x[3]);});
+
+/* 4 HOTEL LUNA 大津店 - 公式サイト */
+addSimpleHotel("HOTEL LUNA 大津店",0);
+[
+ ["休憩2時間","平日",2900,8900],["休憩5時間","平日",3900,9900],["休憩2時間","土日祝",3900,9900],
+ ["宿泊","日〜木",6900,16900],["宿泊","金曜",6900,16900],["宿泊","土日祝",6900,16900]
+].forEach(function(x){addRangeRate("HOTEL LUNA 大津店",x[0],x[1],x[2],x[3]);});
+
+/* 5 HOTEL LaViel - 公式客室料金（確認できた客室の通常プランを登録） */
+addSimpleHotel("HOTEL LaViel",0);
+[
+ ["休憩2時間","平日",4400,5500],["休憩2時間","土日祝",7010,8330],["サービスタイム","平日",6600,8800],["サービスタイム","土日祝",8440,9650],
+ ["宿泊","日〜木",9900,10750],["宿泊","金曜",10200,11850],["延長30分","平日",1100,1100],["延長30分","土日祝",1430,1430]
+].forEach(function(x){addRangeRate("HOTEL LaViel",x[0],x[1],x[2],x[3]);});
+
+/* 6 HOTEL OWL */
+addSimpleHotel("HOTEL OWL",0);
+[
+ ["ショート1時間","平日",1980,4480],["ショート1時間","土日祝",2480,4980],["休憩2時間","平日",3480,5980],["休憩2時間","土日祝",4480,6980],
+ ["サービスタイム","平日",5130,7630],["サービスタイム","土日祝",6130,8630],["宿泊","日〜金",6180,9180],["宿泊","土日祝",6680,10180],["深夜休憩2時間","平日",4230,6730],["深夜休憩2時間","土日祝",4730,7230]
+].forEach(function(x){addRangeRate("HOTEL OWL",x[0],x[1],x[2],x[3]);});
+
+/* 7 ホテル コート・ダ・ジュール */
+addSimpleHotel("ホテル コート・ダ・ジュール",0);
+[
+ ["休憩1時間","平日",2930,6740],["休憩1時間","土日祝",3220,7420],["サービスタイム","平日",4600,9080],["サービスタイム","土日祝",5060,9990],
+ ["宿泊","日〜木",8230,17910],["宿泊","金曜",8080,17580]
+].forEach(function(x){addRangeRate("ホテル コート・ダ・ジュール",x[0],x[1],x[2],x[3]);});
+
+/* 8 ヴィラ・コスタ */
+addSimpleHotel("ヴィラ・コスタ",0);
+[
+ ["休憩90分","平日",2980,4880],["休憩90分","土日祝",3780,5680],["休憩3時間","平日",4180,6080],["休憩3時間","土日祝",5180,7080],
+ ["休憩6時間","平日",4880,6780],["休憩6時間","土日祝",6080,7980],["ノータイム","平日",5880,7780],["ノータイム","土日祝",7380,9280],
+ ["宿泊","日〜木",5980,8980],["宿泊","金曜",6980,9980],["宿泊","土日祝",8480,11480]
+].forEach(function(x){addRangeRate("ヴィラ・コスタ",x[0],x[1],x[2],x[3]);});
+
+/* 9 メイフェア - 税込。メンバーは通常料金から1,000円引き（公式記載） */
+addSimpleHotel("ホテルメイフェア",0);
+[
+ ["休憩60分","平日",4980,6480],["休憩60分","土日祝",5480,6980],["休憩2時間","平日",5980,7480],["休憩2時間","土日祝",6980,8480],
+ ["休憩3時間","平日",6980,8480],["休憩3時間","土日祝",8480,9980],["深夜2時間休憩","平日",6980,8480],["サービスタイム","平日",7980,9480],["サービスタイム","土日祝",9480,10980],
+ ["宿泊","日〜木",7980,11980],["宿泊","金曜",9980,13980],["宿泊","土日祝",12980,16980]
+].forEach(function(x){addRangeRate("ホテルメイフェア",x[0],x[1],x[2],x[3],1000);});
+
+
+/* ホテルメイフェア：ランク別料金を正しく登録（公式掲載料金） */
+var mayfairRanks={
+ "A":{"休憩60分":[3980,4980],"休憩2時間":[4980,5980],"休憩3時間":[5980,6980],"サービスタイム":[6980,7980],"深夜2時間休憩":[5980,6980],"土日祝_休憩60分":[4480,5480],"土日祝_休憩2時間":[5980,6980],"土日祝_休憩3時間":[7480,8480],"土日祝_サービスタイム":[8480,9480]},
+ "B":{"休憩60分":[4480,5480],"休憩2時間":[5480,6480],"休憩3時間":[6480,7480],"サービスタイム":[7480,8480],"深夜2時間休憩":[6480,7480],"土日祝_休憩60分":[4980,5980],"土日祝_休憩2時間":[6480,7480],"土日祝_休憩3時間":[7980,8980],"土日祝_サービスタイム":[8980,9980]},
+ "C":{"休憩60分":[4780,5780],"休憩2時間":[5780,6780],"休憩3時間":[6780,7780],"サービスタイム":[7780,8780],"深夜2時間休憩":[6780,7780],"土日祝_休憩60分":[5280,6280],"土日祝_休憩2時間":[6780,7780],"土日祝_休憩3時間":[8280,9280],"土日祝_サービスタイム":[9280,10280]},
+ "D":{"休憩60分":[4980,5980],"休憩2時間":[5980,6980],"休憩3時間":[6980,7980],"サービスタイム":[7980,8980],"深夜2時間休憩":[6980,7980],"土日祝_休憩60分":[5480,6480],"土日祝_休憩2時間":[6980,7980],"土日祝_休憩3時間":[8480,9480],"土日祝_サービスタイム":[9480,10480]},
+ "E":{"休憩60分":[5480,6480],"休憩2時間":[6480,7480],"休憩3時間":[7480,8480],"サービスタイム":[8480,9480],"深夜2時間休憩":[7480,8480],"土日祝_休憩60分":[5980,6980],"土日祝_休憩2時間":[7480,8480],"土日祝_休憩3時間":[8980,9980],"土日祝_サービスタイム":[9980,10980]}
+};
+Object.keys(mayfairRanks).forEach(function(r){
+ var q=mayfairRanks[r];
+ ["休憩60分","休憩2時間","休憩3時間","サービスタイム","深夜2時間休憩"].forEach(function(p){
+   if(q[p]) setRate("ホテルメイフェア",p,"平日",r,q[p][0],q[p][1]);
+ });
+ setRate("ホテルメイフェア","休憩60分","土日祝",r,q["土日祝_休憩60分"][0],q["土日祝_休憩60分"][1]);
+ setRate("ホテルメイフェア","休憩2時間","土日祝",r,q["土日祝_休憩2時間"][0],q["土日祝_休憩2時間"][1]);
+ setRate("ホテルメイフェア","休憩3時間","土日祝",r,q["土日祝_休憩3時間"][0],q["土日祝_休憩3時間"][1]);
+ setRate("ホテルメイフェア","サービスタイム","土日祝",r,q["土日祝_サービスタイム"][0],q["土日祝_サービスタイム"][1]);
+ setRate("ホテルメイフェア","宿泊","日〜木",r,[6980,7980,8980,9980,10980][["A","B","C","D","E"].indexOf(r)],[7980,8980,9980,10980,11980][["A","B","C","D","E"].indexOf(r)]);
+ setRate("ホテルメイフェア","宿泊","金曜",r,[8980,9980,10980,11980,12980][["A","B","C","D","E"].indexOf(r)],[9980,10980,11980,12980,13980][["A","B","C","D","E"].indexOf(r)]);
+ setRate("ホテルメイフェア","宿泊","土日祝",r,[11980,12980,13980,14980,15980][["A","B","C","D","E"].indexOf(r)],[12980,13980,14980,15980,16980][["A","B","C","D","E"].indexOf(r)]);
+});
+
+/* 10 プラザ太陽 */
+addSimpleHotel("プラザ太陽",0);
+[
+ ["休憩2時間","平日",3280,4490],["休憩1時間","平日",2950,4160],["休憩5時間","平日",3940,5040],
+ ["休憩2時間","土日祝",4380,5480],["休憩1時間","土日祝",3280,4490],["休憩5時間","土日祝",5590,6690]
+].forEach(function(x){addRangeRate("プラザ太陽",x[0],x[1],x[2],x[3]);});
+
+/* 11 どんぐりころころ 守山店 */
+addSimpleHotel("どんぐりころころ 守山店",0);
+[
+ ["休憩1時間","平日",1960,2730],["休憩1時間","土日祝",3060,3830],["休憩2時間","平日",3280,5480],["休憩2時間","土日祝",4380,6580],["休憩4時間","平日",4380,5480],["休憩4時間","土日祝",5480,6580],
+ ["サービスタイム","平日",5480,7680],["宿泊","日〜木",4380,7680],["宿泊","金曜",5480,8780],["宿泊","土日祝",11270,12630]
+].forEach(function(x){addRangeRate("どんぐりころころ 守山店",x[0],x[1],x[2],x[3]);});
+
+/* 12 ラフェスタ */
+addSimpleHotel("ラフェスタ",0);
+[
+ ["休憩1時間","平日",1990,1990],["休憩1時間","土日祝",2500,2500],["休憩3時間","平日",3500,4000],["休憩3時間","土日祝",4500,5000],["休憩5時間","平日",4500,5000],["休憩5時間","土日祝",5500,6000],
+ ["サービスタイム","平日",5500,6000],["サービスタイム","土日祝",7000,7500],["宿泊","日〜木",4280,5280],["宿泊","金曜",4980,6980],["宿泊","土日祝",9000,11000],["延長30分","平日",900,900]
+].forEach(function(x){addRangeRate("ラフェスタ",x[0],x[1],x[2],x[3]);});
+
+
+/* ホテルメイフェアの名称を統一 */
+hotels=hotels.filter(function(h,i,a){return h.name!=="メイフェア" || !a.some(function(x,j){return j!==i && x.name==="ホテルメイフェア";});});
+hotels.forEach(function(h){if(h.name==="メイフェア")h.name="ホテルメイフェア";});
+
+/* 登録済み料金の編集内容を保存 */
+/* 13 HOTEL リーベンデール — 2026/9/22確認。公式掲載は均一料金・メンバー特典なし */
+addSimpleHotel("HOTEL リーベンデール",0);
+[
+ ["休憩3時間","平日",4000,4000],
+ ["休憩2時間","平日",4000,4000],
+ ["休憩1時間","土日祝",4000,4000],
+ ["宿泊","日〜木",6000,6000],
+ ["宿泊","金曜",7200,7200],
+ ["宿泊","土日祝",7200,7200]
+].forEach(function(x){addRangeRate("HOTEL リーベンデール",x[0],x[1],x[2],x[3]);});
+
+var RATE_OVERRIDES_KEY="ical_rate_overrides_v1";
+var RATE_OVERRIDES=JSON.parse(localStorage.getItem(RATE_OVERRIDES_KEY)||"{}");
+Object.keys(RATE_OVERRIDES).forEach(function(k){if(k.indexOf("メイフェア\t")===0){var nk="ホテルメイフェア"+k.slice(5);RATE_OVERRIDES[nk]=RATE_OVERRIDES[k];delete RATE_OVERRIDES[k];}});
+function applyRateOverrides(){
+ Object.keys(RATE_OVERRIDES).forEach(function(key){
+  var a=key.split("\t"),hn=a[0],rank=a[1],plan=a[2],day=a[3],x=RATE_OVERRIDES[key];
+  if(!RATE[hn])RATE[hn]={}; if(!RATE[hn][rank])RATE[hn][rank]={}; if(!RATE[hn][rank][plan])RATE[hn][rank][plan]={};
+  RATE[hn][rank][plan][day]={member:Number(x.member)||0,visitor:Number(x.visitor)||0};
+ });
+}
+applyRateOverrides();
+function editRateRow(hn,p,day){
+ var ranks=Object.keys(RATE[hn]||{});
+ var changed=false;
+ ranks.forEach(function(r){
+  var x=RATE[hn]&&RATE[hn][r]&&RATE[hn][r][p]&&RATE[hn][r][p][day];
+  if(!x)return;
+  var cur=String(x.member)+" / "+String(x.visitor);
+  var v=prompt(hn+"\n"+p+"・"+day+"\n"+r+"ランク\n料金を『メンバー / 一般』で入力\n例：5000 / 5500",cur);
+  if(v===null)return;
+  var m=v.match(/^\s*([0-9,]+)\s*\/\s*([0-9,]+)\s*$/);
+  if(!m){alert("「5000 / 5500」のように入力してください。");return;}
+  var member=Number(m[1].replace(/,/g,"")),visitor=Number(m[2].replace(/,/g,""));
+  RATE[hn][r][p][day]={member:member,visitor:visitor};
+  RATE_OVERRIDES[[hn,r,p,day].join("\t")]= {member:member,visitor:visitor};
+  changed=true;
+ });
+ if(changed){localStorage.setItem(RATE_OVERRIDES_KEY,JSON.stringify(RATE_OVERRIDES));renderRates();alert("料金を保存しました。");}
+}
+
+function $(id){return document.getElementById(id)}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function dateStr(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function saveAll(){localStorage.setItem(STORAGE_RECORDS,JSON.stringify(records));localStorage.setItem(STORAGE_HOTELS,JSON.stringify(hotels))}
+function page(id){["calendarPage","formPage","dayPage","hotelPage"].forEach(function(x){$(x).classList.add("hidden")});$(id).classList.remove("hidden")}
+$("homeLogo").onclick=function(){page("calendarPage");render();};
+function renderMonthRecords(){
+ var el=$("monthRecords"); if(!el)return;
+ el.innerHTML=monthRecords.map(function(r,i){
+   return '<tr><td>'+esc(r.month)+'</td><td>'+(r.date?esc(r.date.replace(/^2026-/,"" ).replace("-","/")):"—")+'</td><td>'+esc(r.hotel)+'</td><td>'+esc(r.rank)+'</td><td>'+esc(r.room)+'</td><td>'+esc(r.dayType)+'</td><td>'+esc(r.plan)+'</td><td>'+esc(r.price)+'</td><td><button class="primary" data-month-edit="'+i+'">✏️ 編集</button> <button class="deleteBtn" data-month-delete="'+i+'">🗑️ 削除</button></td></tr>';
+ }).join("");
+ Array.from(document.querySelectorAll("[data-month-edit]")).forEach(function(b){
+   b.onclick=function(){
+     var i=Number(b.getAttribute("data-month-edit")), r=monthRecords[i];
+     var month=prompt("月を入力してください（例：7月）",r.month); if(month===null)return;
+     var date=prompt("利用日を入力してください（例：2026-07-02）",r.date||""); if(date===null)return;
+     var hotel=prompt("ホテル名",r.hotel); if(hotel===null)return;
+     var rank=prompt("ランク",r.rank); if(rank===null)return;
+     var room=prompt("部屋番号",r.room); if(room===null)return;
+     var dayType=prompt("区分（平日・休日など）",r.dayType); if(dayType===null)return;
+     var plan=prompt("利用プラン",r.plan); if(plan===null)return;
+     var price=prompt("料金",r.price); if(price===null)return;
+     monthRecords[i].month=month.trim()||r.month;
+     monthRecords[i].date=date.trim();
+     monthRecords[i].hotel=hotel.trim()||r.hotel;
+     monthRecords[i].rank=rank.trim()||r.rank;
+     monthRecords[i].room=room.trim()||r.room;
+     monthRecords[i].dayType=dayType.trim()||r.dayType;
+     monthRecords[i].plan=plan.trim()||r.plan;
+     monthRecords[i].price=price.trim()||r.price;
+     localStorage.setItem(MONTH_RECORDS_KEY,JSON.stringify(monthRecords));
+     renderMonthRecords();
+     renderSummary();
+   };
+ });
+ Array.from(document.querySelectorAll("[data-month-delete]")).forEach(function(b){
+   b.onclick=function(){
+     var i=Number(b.getAttribute("data-month-delete"));
+     if(!confirm("この月別利用記録を削除しますか？\n削除すると元に戻せません。"))return;
+     monthRecords.splice(i,1);
+     localStorage.setItem(MONTH_RECORDS_KEY,JSON.stringify(monthRecords));
+     renderMonthRecords();
+     renderSummary();
+   };
+ });
+}
+
+function yenNum(v){var n=Number(String(v||"").replace(/[^0-9]/g,""));return isFinite(n)?n:0;}
+function summaryRows(){
+ var rows=[];
+ (records||[]).forEach(function(r){
+   var ds=r.executed||r.planned||""; var m=ds.match(/^(\d{4})-(\d{2})-/); if(!m)return;
+   rows.push({key:m[1]+"-"+m[2],month:Number(m[2])+"月",hotel:r.hotel,room:r.room,price:yenNum(r.totalPrice||r.price),source:"record"});
+ });
+ (monthRecords||[]).forEach(function(r){
+   var m=String(r.month||"").match(/(\d{1,2})月/); if(!m)return;
+   var mo=String(Number(m[1])).padStart(2,"0"), price=yenNum(r.price);
+   var exists=rows.some(function(x){return x.key==="2026-"+mo && x.hotel===r.hotel && x.room===r.room && x.price===price;});
+   if(!exists) rows.push({key:"2026-"+mo,month:Number(m[1])+"月",hotel:r.hotel,room:r.room,price:price,source:"month"});
+ });
+ return rows;
+}
+function renderSummary(){
+ var rows=summaryRows(), by={};
+ rows.forEach(function(r){if(!by[r.key])by[r.key]={month:r.month,count:0,total:0};by[r.key].count++;by[r.key].total+=r.price;});
+ var months=Object.keys(by).sort(); var total=rows.reduce(function(a,r){return a+r.price;},0); var count=rows.length; var avg=count?Math.round(total/count):0;
+ $("summaryStats").innerHTML='<div class="price">利用件数：'+count+'件</div><div class="price">料金合計：'+total.toLocaleString()+'円<br><span class="muted">平均：'+avg.toLocaleString()+'円</span></div>';
+ $("monthlySummary").innerHTML=months.length?months.map(function(k){var x=by[k];return '<tr><td>'+x.month+'</td><td>'+x.count+'件</td><td>'+x.total.toLocaleString()+'円</td><td>'+Math.round(x.total/x.count).toLocaleString()+'円</td></tr>';}).join(""):'<tr><td colspan="4">記録がありません。</td></tr>';
+ var max=months.reduce(function(mx,k){return Math.max(mx,by[k].total);},0);
+ $("monthlyChart").innerHTML=months.length?months.map(function(k){var x=by[k],h=max?Math.max(8,Math.round(x.total/max*180)):8;return '<div style="min-width:58px;height:200px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center"><div class="muted" style="font-size:11px">'+x.total.toLocaleString()+'円</div><div style="width:34px;height:'+h+'px;background:#222;border-radius:5px 5px 0 0" title="'+x.month+' '+x.total.toLocaleString()+'円"></div><div style="font-size:12px;margin-top:5px">'+x.month+'</div></div>';}).join(""):'<span class="muted">記録がありません。</span>';
+}
+
+function renderEditRecordList(){
+  var el=document.getElementById("editRecordList");
+  if(!el)return;
+  if(!records.length){el.innerHTML="<p class='muted'>登録はありません。</p>";return;}
+  el.innerHTML=records.map(function(r,i){
+    var d=r.executed||r.planned||"日付未登録";
+    var status=r.executed?"利用":"予定";
+    return '<div class="record" style="margin:10px 0;padding:12px">'
+      +'<b>'+esc(d)+'　'+esc(status)+'</b>'
+      +'<div>'+esc(r.hotel||"")+'　'+esc(r.rank||"")+'・部屋 '+esc(r.room||"")+'</div>'
+      +'<div>'+esc(r.plan||"")+'　'+esc(r.totalPrice||r.price||"")+'</div>'
+      +'<div style="display:flex;gap:8px;margin-top:10px">'
+      +'<button class="primary" data-top-edit="'+i+'">✏️ 編集</button>'
+      +'<button class="deleteBtn" data-top-delete="'+i+'">🗑️ 削除</button>'
+      +'</div></div>';
+  }).join("");
+  Array.from(document.querySelectorAll("[data-top-edit]")).forEach(function(b){
+    b.onclick=function(){
+      var i=Number(b.getAttribute("data-top-edit"));
+      var r=records[i];
+      openForm(r.executed||r.planned||dateStr(new Date()), r.executed?"executed":"planned", i);
+    };
+  });
+  Array.from(document.querySelectorAll("[data-top-delete]")).forEach(function(b){
+    b.onclick=function(){
+      deleteRecord(Number(b.getAttribute("data-top-delete")), dateStr(new Date()));
+    };
+  });
+}
+
+function editAllRecords(){
+  if(!records.length){alert("登録データがありません。先に予定または実行を登録してください。");return;}
+  document.getElementById("editRecordList").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function editAllMonthRecords(){
+  if(!monthRecords.length){alert("月別記録がありません。");return;}
+  document.getElementById("monthRecords").scrollIntoView({behavior:"smooth",block:"start"});
+}
+$("editAllBtn").onclick=editAllRecords;
+$("editMonthAllBtn").onclick=editAllMonthRecords;
+
+function render(){
+ var y=view.getFullYear(),m=view.getMonth(),first=new Date(y,m,1).getDay(),last=new Date(y,m+1,0).getDate(),html="";
+ $("month").textContent=y+"年"+(m+1)+"月";
+ for(var i=0;i<first;i++)html+="<div></div>";
+ var today=dateStr(new Date());
+ for(var d=1;d<=last;d++){var ds=y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");var plannedHas=records.some(function(r){return r.planned===ds&&!r.executed});var usedHas=records.some(function(r){return r.executed===ds});var has=plannedHas||usedHas;var label=plannedHas&&usedHas?"予定・利用":(usedHas?"利用":"予定");html+='<button class="day '+(has?"has ":"")+(ds===today?"today":"")+'" data-date="'+ds+'"><b>'+d+"</b>"+(has?'<div class="muted">● '+label+" ❤️</div>":"")+"</button>"}
+ $("cal").innerHTML=html;
+ Array.from(document.querySelectorAll(".day")).forEach(function(b){b.onclick=function(){openDay(b.getAttribute("data-date"))}});
+   renderEditRecordList();
+}
+var formMode="planned";var editingIndex=null;var roomRating=0;
+function openForm(date,mode,recordIndex){
+ formMode=mode||"planned";editingIndex=(typeof recordIndex==="number"?recordIndex:null);roomRating=0;
+ page("formPage");
+ $("formTitle").textContent=formMode==="executed"?"実行を登録":"予定を登録";
+ $("formNotice").textContent=formMode==="executed"?"予定の内容を引き継いで、実行済みに変更します。実行日は今日の日付が入ります。部屋評価はここで★を付けられます。":"これから行く予定を登録します。";
+ $("plannedWrap").classList.toggle("hidden",formMode==="executed");$("executedWrap").classList.toggle("hidden",formMode!=="executed");$("roomRatingWrap").classList.toggle("hidden",formMode!=="executed");
+ $("planned").value=formMode==="planned"?(date||dateStr(new Date())):(recordIndex!=null?(records[recordIndex].planned||""):"");
+ $("executed").value=formMode==="executed"?(date||dateStr(new Date())):"";
+ $("memo").value="";$("photo").value="";$("preview").innerHTML="";photo="";
+ $("hotel").innerHTML='<option value="">選択してください</option>'+hotels.map(function(h,i){return '<option value="'+i+'">'+esc(h.name)+"</option>"}).join("");
+ $("hotel").value="";clearChoices();renderRoomStars();
+ $("hotel").onchange=hotelChanged;$("rank").onchange=rankChanged;$("member").onchange=priceChanged;$("dayType").onchange=priceChanged;$("planned").onchange=priceChanged;$("executed").onchange=priceChanged;$("extraFee").oninput=updateTotalPrice;
+ if(recordIndex!=null){var r=records[recordIndex];if(r){var hi=hotels.findIndex(function(h){return h.name===r.hotel});if(hi>=0){$("hotel").value=String(hi);hotelChanged();
+ if(r.rank && !Array.from($("rank").options).some(function(o){return o.value===r.rank})){
+   $("rank").insertAdjacentHTML("beforeend",'<option value="'+esc(r.rank)+'">'+esc(r.rank)+"（過去記録）</option>");
+ }
+ $("rank").value=r.rank||"";rankChanged();
+ if(r.rank==="SS" && r.hotel===FINE_BIWAKO2 && !Array.from($("room").options).some(function(o){return o.value===r.room})){
+   $("room").insertAdjacentHTML("beforeend",'<option value="'+esc(r.room)+'">'+esc(r.room)+"（過去記録）</option>");
+ }
+ $("room").value=r.room||"";$("member").value=r.member||"member";$("dayType").value=(r.dayType==="土日祝"||r.dayType==="休日"||r.dayType==="土日祝日")?"土日祝日":"平日";$("plan").value=r.plan||"";
+ if(r.plan && !Array.from($("plan").options).some(function(o){return o.value===r.plan})){
+   $("plan").insertAdjacentHTML("beforeend",'<option value="'+esc(r.plan)+'">'+esc(r.plan)+"（過去記録）</option>");
+ }
+ $("plan").value=r.plan||"";$("extraFee").value=Number(r.extraFee)||0;$("memo").value=r.memo||"";roomRating=Number(r.roomRating)||0;renderRoomStars();if(r.photo){photo=r.photo;$("preview").innerHTML='<img class="photo" src="'+photo+'">'}priceChanged();}}}
+}
+function clearChoices(){
+ $("rank").innerHTML='<option value="">ホテルを選択</option>';
+ $("room").innerHTML='<option value="">ランクを選択</option>';
+ $("plan").innerHTML='<option value="">ランクを選択</option>';
+ $("price").textContent="—";
+}
+function hotelChanged(){
+ var h=hotels[Number($("hotel").value)];
+ if(!h){clearChoices();return}
+ $("rank").innerHTML='<option value="">選択してください</option>'+h.ranks.map(function(r){return '<option value="'+esc(r)+'">'+esc(r)+"</option>"}).join("");
+ $("room").innerHTML='<option value="">ランクを選択</option>';
+ $("plan").innerHTML='<option value="">ランクを選択</option>';
+ $("price").textContent="—";
+ $("rank").onchange=rankChanged;
+}
+function rankChanged(){
+ var h=hotels[Number($("hotel").value)],r=$("rank").value;
+ var rooms=(h&&h.rankRooms&&h.rankRooms[r])||[];
+ $("room").innerHTML='<option value="">選択してください</option>'+rooms.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+"</option>"}).join("");
+ var catalog=RATE[h.name]&&RATE[h.name][r],plans=[];
+ if(!catalog && h.name==="グリオン") catalog=RATE[h.name]["共通"];
+ if(catalog) plans=Object.keys(catalog);
+ if(!plans.length && h && h.name==="ホテル ファイン琵琶湖2"){
+   plans=["休憩3時間","サービスタイム","宿泊"];
+ }
+ if(!plans.length) plans=["1時間","1時間30分","2時間","2時間10分","3時間","3時間10分","4時間","5時間","休憩","デイユース","宿泊","延長30分"];
+ $("plan").innerHTML='<option value="">選択してください</option>'+plans.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+"</option>"}).join("");
+ $("plan").onchange=priceChanged;priceChanged();
+}
+var JAPAN_HOLIDAYS={"2026-09-21":1,"2026-09-22":1,"2026-09-23":1,"2026-10-12":1,"2026-11-03":1,"2026-11-23":1,"2027-01-01":1,"2027-01-11":1,"2027-02-11":1,"2027-02-23":1,"2027-03-21":1,"2027-03-22":1,"2027-04-29":1,"2027-05-03":1,"2027-05-04":1,"2027-05-05":1,"2027-07-19":1,"2027-08-11":1,"2027-09-20":1,"2027-09-23":1,"2027-10-11":1,"2027-11-03":1,"2027-11-23":1,"2028-01-01":1,"2028-01-10":1,"2028-02-11":1,"2028-02-23":1,"2028-03-20":1,"2028-04-29":1,"2028-05-03":1,"2028-05-04":1,"2028-05-05":1,"2028-07-17":1,"2028-08-11":1,"2028-09-18":1,"2028-09-22":1,"2028-10-09":1,"2028-11-03":1,"2028-11-23":1};
+function isHoliday(ds){return !!JAPAN_HOLIDAYS[ds]}
+function rateDayFor(h,ds,p){
+ if(!ds)return "平日";var d=new Date(ds+"T00:00:00").getDay();
+ if(p&&p.indexOf("宿泊")===0){
+   if(isHoliday(ds)) return "祝日";
+   return d===5?"金曜":(d===6?"土日祝":"日〜木");
+ }
+ if(isHoliday(ds)) return "祝日";
+ return d===5?"金曜":(d===0||d===6?"土日祝":"平日");
+}
+function priceChanged(){
+ var h=hotels[Number($("hotel").value)],r=$("rank").value,p=$("plan").value;
+ var ds=formMode==="executed"?$("executed").value:$("planned").value;
+ if(!h||!p){$("price").textContent="—";updateTotalPrice();return}
+ var selectedDay=$("dayType").value||"平日";
+ var day=selectedDay==="土日祝日"?"土日祝":"平日";
+ if(p.indexOf("宿泊")===0){
+   if(h.name==="ホテル ファイン琵琶湖2") day=selectedDay==="土日祝日"?"土・祝前日":"日〜木・祝日";
+   else if(h.name==="ホテルメイフェア") day=selectedDay==="土日祝日"?"土日祝":"日〜木";
+ }
+ var cell=RATE[h.name]&&RATE[h.name][r]&&RATE[h.name][r][p]&&RATE[h.name][r][p][day];
+ if(!cell && day==="祝日") cell=RATE[h.name]&&RATE[h.name][r]&&RATE[h.name][r][p]&&RATE[h.name][r][p]["土日祝"];
+ if(!cell && day==="金曜") cell=RATE[h.name]&&RATE[h.name][r]&&RATE[h.name][r][p]&&RATE[h.name][r][p]["平日"];
+ if(cell){var v=$("member").value==="member"?cell.member:cell.visitor;$("price").textContent=typeof v==="number"?v.toLocaleString("ja-JP")+"円":v}else $("price").textContent="—";
+ updateTotalPrice();
+}
+function updateTotalPrice(){
+ var base=String($("price").textContent||"").replace(/[^0-9]/g,"");
+ var extra=Number($("extraFee").value||0)||0;
+ if(base) $("totalPrice").textContent=(Number(base)+extra).toLocaleString()+"円"; else $("totalPrice").textContent="—";
+}
+function renderRoomStars(){
+ $("roomStars").innerHTML="";
+ for(var i=1;i<=5;i++){var b=document.createElement("button");b.type="button";b.textContent="★";b.className=i<=roomRating?"on":"";b.onclick=(function(n){return function(){roomRating=n;renderRoomStars();};})(i);$("roomStars").appendChild(b);}
+ $("roomRatingText").textContent=roomRating?roomRating+" / 5":"未評価";
+}
+function saveRecord(){
+ var h=hotels[Number($("hotel").value)];if(!h){alert("ホテルを選択してください");return;}
+ var planned=formMode==="planned"?$("planned").value:(editingIndex!=null?(records[editingIndex].planned||""):"");
+ var executed=formMode==="executed"?$("executed").value:"";
+ if(formMode==="planned"&&!planned){alert("予定日を入力してください");return;}if(formMode==="executed"&&!executed){alert("実行日を入力してください");return;}
+ if(!$("rank").value||!$("room").value||!$("plan").value){alert("ランク・部屋番号・プランを選択してください");return;}
+ if(formMode==="executed"&&!roomRating&&!confirm("部屋評価なしで実行登録しますか？"))return;
+ var rec={planned:planned||"",executed:executed||"",hotel:h.name,rank:$("rank").value,room:$("room").value,member:$("member").value,dayType:$("dayType").value,plan:$("plan").value,price:$("price").textContent,extraFee:Number($("extraFee").value||0)||0,totalPrice:$("totalPrice").textContent,memo:$("memo").value,photo:photo,roomRating:formMode==="executed"?roomRating:0};
+ if(editingIndex!=null)records[editingIndex]=Object.assign({},records[editingIndex],rec);else records.push(rec);
+ saveAll();renderSummary();var ds=executed||planned;view=new Date(ds+"T00:00:00");view.setDate(1);page("calendarPage");render();alert(formMode==="executed"?"予定を実行登録しました":"予定を登録しました");
+}
+function setPhotoFile(file){
+  if(!file)return;
+  if(!file.type || file.type.indexOf("image/")!==0){
+    alert("画像ファイルを選択してください。");
+    return;
+  }
+  var rd=new FileReader();
+  rd.onload=function(){
+    var img=new Image();
+    img.onload=function(){
+      var max=1280, scale=Math.min(1,max/Math.max(img.width,img.height));
+      var w=Math.max(1,Math.round(img.width*scale));
+      var h=Math.max(1,Math.round(img.height*scale));
+      var canvas=document.createElement("canvas");
+      canvas.width=w; canvas.height=h;
+      var ctx=canvas.getContext("2d");
+      ctx.drawImage(img,0,0,w,h);
+      photo=canvas.toDataURL("image/jpeg",0.78);
+      $("preview").innerHTML='<div class="photoPreview"><img class="photo" src="'+photo+'"></div>';
+    };
+    img.src=rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+$("photo").onchange=function(e){setPhotoFile(e.target.files[0]);};
+$("cameraBtn").onclick=function(){
+  $("photo").setAttribute("capture","environment");
+  $("photo").click();
+};
+$("photoSelectBtn").onclick=function(){
+  $("photo").removeAttribute("capture");
+  $("photo").click();
+};
+function openDay(ds){
+ page("dayPage");$("dayTitle").textContent=ds;
+ var rs=records.filter(function(r){return r.planned===ds||r.executed===ds});
+ $("dayRecords").innerHTML=rs.length?rs.map(function(r){var idx=records.indexOf(r);var type=r.executed===ds?"実行":"予定";var rating=r.roomRating?'<div>部屋評価：'+stars(r.roomRating)+'</div>':'';return '<div class="record"><b>'+type+'｜'+esc(r.hotel)+'</b><div class="muted">予定日：'+esc(r.planned||"未登録")+'　実行日：'+esc(r.executed||"未登録")+'</div><div>'+esc(r.rank)+'・部屋 '+esc(r.room)+'・'+esc(r.plan)+'・'+esc(r.price)+'</div>'+rating+'<div>'+esc(r.memo||"")+'</div>'+(r.photo?'<img class="photo" src="'+r.photo+'">':"")+ '<div class="actions">'+(!r.executed?'<button class="primary" data-exec="'+idx+'">予定を実行登録</button>':'')+'<button class="secondary" data-edit="'+idx+'">'+(r.executed?"利用を編集":"予定を編集")+'</button><button class="deleteBtn" data-delete="'+idx+'">削除</button></div></div>'}).join(""):"<p class='muted'>記録はありません。</p>";
+ Array.from(document.querySelectorAll("[data-delete]")).forEach(function(b){b.onclick=function(){deleteRecord(Number(b.getAttribute("data-delete")),ds)}});
+ Array.from(document.querySelectorAll("[data-exec]")).forEach(function(b){b.onclick=function(){openForm(dateStr(new Date()),"executed",Number(b.getAttribute("data-exec")))}});
+ Array.from(document.querySelectorAll("[data-edit]")).forEach(function(b){b.onclick=function(){openForm(dateStr(new Date()),"executed",Number(b.getAttribute("data-edit")))}});
+}
+function deleteRecord(index,ds){
+ if(index<0||index>=records.length)return;
+ if(!confirm("この記録を削除しますか？\n削除すると元に戻せません。"))return;
+ records.splice(index,1);
+ saveAll();
+ renderSummary();
+ render();
+ openDay(ds);
+}
+function openHotels(){
+ page("hotelPage");
+ renderHotelSelector();
+ var h=hotels[0]||HOTEL_DEFAULT[0];
+ if(h){$("hhotelSelect").value=h.name;loadHotelForEdit(h.name);}
+ renderHotelList();renderRates();
+}
+function renderHotelSelector(){
+ var opts='<option value="">ホテルを選択してください</option>'+hotels.map(function(h){return '<option value="'+esc(h.name)+'">'+esc(h.name)+'</option>';}).join('')+'<option value="__new__">＋新しいホテルを追加</option>';
+ $("hhotelSelect").innerHTML=opts;
+}
+function loadHotelForEdit(name){
+ var h=hotels.find(function(x){return x.name===name});
+ if(!h){$("newHotelNameWrap").classList.remove("hidden");$("hname").value="";$("hstars").value=0;$("hranks").value="";renderRankRoomInputs({});renderSelectedHotelRates("");return;}
+ $("newHotelNameWrap").classList.add("hidden");$("hname").value=h.name;$("hstars").value=h.stars;$("hranks").value=h.ranks.join(", ");
+ renderRankRoomInputs(h.rankRooms||{});renderSelectedHotelRates(h.name);
+}
+function renderSelectedHotelRates(name){
+ var box=$("selectedHotelRates");if(!box)return;
+ if(!name){box.innerHTML='<b>料金連動</b><div class="muted">ホテルを選ぶと、そのホテルの料金表が表示されます。</div>';return;}
+ var ranks=RATE[name]?Object.keys(RATE[name]):[],rows='';
+ ranks.forEach(function(r){Object.keys(RATE[name][r]||{}).forEach(function(pl){Object.keys(RATE[name][r][pl]||{}).forEach(function(day){var x=RATE[name][r][pl][day];rows+='<tr><td>'+esc(r)+'</td><td>'+esc(pl)+'</td><td>'+esc(day)+'</td><td>'+String(x.member)+'</td><td>'+String(x.visitor)+'</td></tr>';});});});
+ box.innerHTML='<b>'+esc(name)+' の料金</b><div style="overflow:auto;max-height:360px"><table><thead><tr><th>ランク</th><th>プラン</th><th>区分</th><th>メンバー</th><th>一般</th></tr></thead><tbody>'+(rows||'<tr><td colspan="5">登録料金なし</td></tr>')+'</tbody></table></div>';
+}
+function renderRankRoomInputs(existing){
+ var ranks=$("hranks").value.split(",").map(function(x){return x.trim()}).filter(Boolean);
+ $("rankRoomInputs").innerHTML=ranks.map(function(r){
+   var vals=(existing&&existing[r])||[];
+   return '<div class="row" style="margin-top:8px"><div style="width:100%"><label>'+esc(r)+'ランクの部屋番号</label><input class="rankRoomInput" data-rank="'+esc(r)+'" value="'+esc(vals.join(", "))+'" placeholder="例：201, 202, 203"></div></div>';
+ }).join("");
+}
+
+function renderHotelList(){
+ $("hotelList").innerHTML=hotels.map(function(h){return '<div class="record"><b>'+esc(h.name)+" "+("★".repeat(h.stars)||"")+'</b><div>ランク：'+esc(h.ranks.join(" / "))+'</div><div>部屋番号はランク別に登録済み</div></div>'}).join("");
+}
+function saveHotel(){
+ var selected=$("hhotelSelect").value;
+ var name=selected==="__new__"?$("hname").value.trim():selected;
+ var stars=Math.max(0,Math.min(5,Number($("hstars").value)||0)),ranks=$("hranks").value.split(",").map(function(x){return x.trim()}).filter(Boolean);
+ if(!name||!ranks.length){alert("ホテル名とランクを入力してください");return}
+ var h=hotels.find(function(x){return x.name===name});
+ var rankRooms={};
+ $("rankRoomInputs").querySelectorAll(".rankRoomInput").forEach(function(inp){
+   var r=inp.getAttribute("data-rank");
+   rankRooms[r]=inp.value.split(",").map(function(x){return x.trim()}).filter(Boolean);
+ });
+ if(!h){h={name:name,stars:stars,ranks:ranks,rankRooms:rankRooms};hotels.push(h)}
+ else{h.stars=stars;h.ranks=ranks;h.rankRooms=rankRooms}
+ saveAll();renderHotelSelector();$("hhotelSelect").value=name;loadHotelForEdit(name);renderHotelList();alert("保存しました");
+}
+$("hranks").addEventListener("input",function(){renderRankRoomInputs({})});
+$("hhotelSelect").addEventListener("change",function(){var v=this.value;if(v==="__new__"){loadHotelForEdit("");return;}loadHotelForEdit(v);});
+
+function renderRates(){
+ var rows="";
+ Object.keys(RATE).forEach(function(hn){
+  var ranks=Object.keys(RATE[hn]);
+  var ps={};ranks.forEach(function(r){Object.keys(RATE[hn][r]).forEach(function(p){ps[p]=1})});
+  Object.keys(ps).forEach(function(p){
+   var days={};ranks.forEach(function(r){if(RATE[hn][r]&&RATE[hn][r][p])Object.keys(RATE[hn][r][p]).forEach(function(d){days[d]=1})});
+   Object.keys(days).forEach(function(day){
+    var dayOpts=["平日","土日祝","土日祝日","月〜金","土・祝前","日・祝日","日〜木・祝日","金曜日","土・祝前日"];
+    var opts=dayOpts.map(function(d){return '<option value="'+esc(d)+'" '+(d===day?'selected':'')+'>'+esc(d)+'</option>';}).join("");
+    rows+="<tr><td>"+esc(hn)+"</td><td>"+esc(p)+"</td><td><select class='rate-day-select' data-rate-day='1' data-hotel='"+esc(hn)+"' data-plan='"+esc(p)+"' data-day='"+esc(day)+"'>"+opts+"</select></td>";
+    ranks.forEach(function(r){var x=RATE[hn][r]&&RATE[hn][r][p]&&RATE[hn][r][p][day];rows+="<td>"+(x?(String(x.member)+" / "+String(x.visitor)):"—")+"</td>"});
+    rows+="<td><button class='primary' data-rate-edit='1' data-hotel='"+esc(hn)+"' data-plan='"+esc(p)+"' data-day='"+esc(day)+"'>✏️ 編集</button></td></tr>";
+   });
+  });
+ });
+ var head='<tr><th>ホテル</th><th>プラン</th><th>区分</th>';
+ var allRanks={};Object.keys(RATE).forEach(function(hn){Object.keys(RATE[hn]).forEach(function(r){allRanks[r]=1})});
+ Object.keys(allRanks).forEach(function(r){head+='<th>'+esc(r)+'</th>'});
+ head+='<th>操作</th>';
+ var table=document.querySelector('#rates');
+ if(table){var thead=table.parentElement.querySelector('thead');if(thead)thead.innerHTML=head;}
+ $("rates").innerHTML=rows;
+}
+
+$("rates").addEventListener("change",function(e){
+ var sel=e.target.closest("select[data-rate-day]");if(!sel)return;
+ var h=sel.getAttribute("data-hotel"),p=sel.getAttribute("data-plan"),oldDay=sel.getAttribute("data-day"),newDay=sel.value;
+ if(oldDay===newDay)return;
+ if(RATE[h]&&RATE[h][Object.keys(RATE[h])[0]]){
+   var ranks=Object.keys(RATE[h]);
+   ranks.forEach(function(r){
+     var oldx=RATE[h][r]&&RATE[h][r][p]&&RATE[h][r][p][oldDay];
+     if(oldx){ if(!RATE[h][r][p][newDay]) RATE[h][r][p][newDay]={member:oldx.member,visitor:oldx.visitor}; }
+   });
+ }
+ renderRates();
+});
+$("rates").addEventListener("click",function(e){
+ var b=e.target.closest("button[data-rate-edit]");if(!b)return;
+ editRateRow(b.getAttribute("data-hotel"),b.getAttribute("data-plan"),b.getAttribute("data-day"));
+});
+$("topAdd").onclick=function(){openForm(null,"planned")};$("topExec").onclick=function(){openForm(null,"executed")};$("add2").onclick=function(){openForm(null,"planned")};$("exec2").onclick=function(){openForm(null,"executed")};$("prev").onclick=function(){view.setMonth(view.getMonth()-1);render()};$("next").onclick=function(){view.setMonth(view.getMonth()+1);render()};
+$("back1").onclick=function(){page("calendarPage");render()};$("back2").onclick=function(){page("calendarPage");render()};$("back3").onclick=function(){page("calendarPage");render()};$("hotelDown").onclick=function(){$("rateTableTop").scrollIntoView({behavior:"smooth",block:"start"});};$("hotelTop").onclick=function(){window.scrollTo({top:0,behavior:"smooth"});};
+$("save").onclick=saveRecord;$("hotelBtn").onclick=openHotels;$("hotelSave").onclick=saveHotel;
+
+(function mergeDefaultHotels(){
+ var changed=false;
+ HOTEL_DEFAULT.forEach(function(d){
+  var h=hotels.find(function(x){return x.name===d.name});
+  if(!h){hotels.push(JSON.parse(JSON.stringify(d)));changed=true;}
+ });
+ if(changed)saveAll();
+})();
+render();renderMonthRecords();
+renderSummary();
+</script>
+
+</body>
+</html>
